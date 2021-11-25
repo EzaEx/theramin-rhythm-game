@@ -1,32 +1,30 @@
-// Wire Slave Receiver
-// by Nicholas Zambetti <http://www.zambetti.com>
-
-// Demonstrates use of the Wire library
-// Receives data as an I2C/TWI slave device
-// Refer to the "Wire Master Writer" example for use with this
-
-// Created 29 March 2006
-
-// This example code is in the public domain.
-
-
+Client1
 #include <Wire.h>
+#include <LiquidCrystal.h>
 
-const byte deviceAddress = 2;
+const byte deviceAddress = 1;
+
+const int rs = 12, en = 11, d4 = 2, d5 = 3, d6 = 4, d7 = 5;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
 void setup()
 {
   Wire.begin(4);                // join i2c bus with address #4
   Wire.onReceive(receiveEvent); // register event
   Serial.begin(9600);           // start serial for output
+
+  lcd.begin(16, 2);
+  lcd.print("hello, world!");
 }
 
 void loop()
 {
+  lcd.setCursor(0, 1);
+  
   delay(500);
   Wire.beginTransmission(4);
   Wire.write(deviceAddress);
-  Wire.write(24);
+  Wire.write(13);
   Wire.endTransmission();
 }
 
@@ -36,20 +34,20 @@ void receiveEvent(int howMany)
 {
   byte b = Wire.read();
 
-  if (b == 0 || b == deviceAddress)
+  if (b == deviceAddress or b == 0)
   {
-      while(Wire.available())
-      {
-        byte b = Wire.read();
-        Serial.print(b);
-      }
-      Serial.println();
+    while(Wire.available()) // loop through all but the last
+    {
+      int i = Wire.read(); // receive byte as a character
+      lcd.clear();
+      lcd.print(i);         // print the character
+    }
   }
   else
   {
-    while(Wire.available())
+    while(Wire.available()) // loop through all but the last
     {
-      byte b = Wire.read();
+      int i = Wire.read(); // receive byte as a character
     }
   }
 }
