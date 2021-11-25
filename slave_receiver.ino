@@ -1,3 +1,4 @@
+Client1
 #include <Wire.h>
 #include <LiquidCrystal.h>
 
@@ -25,7 +26,6 @@ void loop()
   Wire.write(deviceAddress);
   Wire.write(13);
   Wire.endTransmission();
-  
 }
 
 // function that executes whenever data is received from master
@@ -50,5 +50,4 @@ void receiveEvent(int howMany)
       int i = Wire.read(); // receive byte as a character
     }
   }
-  
 }
