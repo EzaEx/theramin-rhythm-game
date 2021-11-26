@@ -1,20 +1,26 @@
-Client1
 #include <Wire.h>
 #include <LiquidCrystal.h>
+#include "./Libraries/Ultrasonic.h"
 
 const byte deviceAddress = 1;
 
-const int rs = 12, en = 11, d4 = 2, d5 = 3, d6 = 4, d7 = 5;
+const int pressurePadPin = 3;
+const int rs = 12, en = 11, d4 = 6, d5 = 7, d6 = 8, d7 = 9;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
+volatile int score = 0;
+
+Ultrasonic ultrasonic(5);
 
 void setup()
 {
-  Wire.begin(4);                // join i2c bus with address #4
-  Wire.onReceive(receiveEvent); // register event
-  Serial.begin(9600);           // start serial for output
+  Wire.begin(4);
+  Wire.onReceive(receiveEvent);
+  Serial.begin(9600);
+  pinMode(3, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(pressurePadPin), pressurePadHit, FALLING);
 
   lcd.begin(16, 2);
-  lcd.print("hello, world!");
 }
 
 void loop()
@@ -28,26 +34,31 @@ void loop()
   Wire.endTransmission();
 }
 
-// function that executes whenever data is received from master
-// this function is registered as an event, see setup()
+void pressurePadHit()
+{
+  score += ultrasonic.MeasureInCentimeters();
+  lcd.clear();
+  lcd.print(score);
+}
+
 void receiveEvent(int howMany)
 {
   byte b = Wire.read();
 
   if (b == deviceAddress or b == 0)
   {
-    while(Wire.available()) // loop through all but the last
+    while(Wire.available())
     {
-      int i = Wire.read(); // receive byte as a character
+      int i = Wire.read();
       lcd.clear();
-      lcd.print(i);         // print the character
+      lcd.print(i);
     }
   }
   else
   {
-    while(Wire.available()) // loop through all but the last
+    while(Wire.available())
     {
-      int i = Wire.read(); // receive byte as a character
+      int i = Wire.read();
     }
   }
 }
