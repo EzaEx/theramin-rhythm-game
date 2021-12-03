@@ -27,23 +27,24 @@ void setup()
 void loop()
 {
   lcd.setCursor(0, 0);
-  lcd.print(currentNote);
   lcd.setCursor(0, 1);
   lcd.print(score);
   lcd.setCursor(12, 0);
-  lcd.print(ultrasonic.MeasureInCentimeters());
+  int height = ultrasonic.MeasureInCentimeters();
+  lcd.print(height);
 
   if (digitalRead(pressurePadPin) == false && !prevPressed)
   {
     prevPressed = true;
     if (currentNote == 0)
     {
-      score--;
+      score -= 300;
     }
     else
     {
+      int points = 1000 - (abs(currentNote - height/5) * 150);
       currentNote = 0;
-      score++;
+      score += points;
     }
   }
   else if (digitalRead(pressurePadPin) == true && prevPressed)
@@ -55,6 +56,7 @@ void loop()
 void receiveEvent(int howMany)
 {
   byte b = Wire.read();
+  Serial.println(b);
 
   if (b == deviceAddress)
   {
