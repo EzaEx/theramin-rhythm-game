@@ -1,7 +1,6 @@
 #include <Wire.h>
 #include <LiquidCrystal.h>
 #include <SPI.h>
-#include <SD.h>
 
 const int rs = 12, en = 11, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //define lcd pins
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7); //instantiate lcd object w/ pins
