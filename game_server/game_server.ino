@@ -14,21 +14,18 @@ const int buzzerPin2 = 10;
 const int buttonPin = 3;
 const int noteTime = 400;
 
-int rhythmOutput[32] = {};
+int gameState = 0;
 
-unsigned short melody[] = { 
-784, 698, 622, 587, 466, 392, 523, 587, 622, 698, 587, 0, 1047, 784, 622, 587, 523, 523, 587, 622, 523, 466, 523, 392, 1047, 784, 622, 587, 523, 523, 587, 622, 698, 587, 466, 523, 392, 523, 587, 622, 698, 784, 831, 1047, 1047, 784, 622, 587, 523, 523, 587, 622, 523, 466, 523, 392, 1047, 784, 622, 698, 784, 523, 587, 698, 587, 466, 523, 349, 349, 415, 523, 622, 587, 523, 392, 349, 349, 415, 523, 622, 698, 784, 831, 784, 698, 622, 698, 784, 523, 784, 698, 698, 698, 622, 587, 622, 698, 622, 698, 784, 622, 349, 349, 415, 523, 622, 587, 523, 392, 349, 349, 415, 523, 622, 698, 784, 831, 784, 698, 831, 933, 1047, 784, 622, 523, 587, 587, 587, 698, 587, 466, 392, 466, 523, 466, 622, 622, 622, 622, 622, 698, 784, 784, 784, 698, 622, 587, 587, 587, 587, 587, 622, 587, 622, 587, 523, 523, 523, 523, 523, 587, 622, 622, 622, 587, 523, 466, 466, 466, 466, 523, 587, 523, 466, 415, 415, 415, 415, 466, 523, 523, 523, 466, 415, 392, 392, 392, 622, 698, 622, 466, 622, 622, 622, 622, 698, 740, 740, 740, 831, 740, 698, 698, 698, 698, 740, 698, 784, 698, 622, 622, 622, 622, 622, 698, 784, 784, 784, 698, 622, 587, 587, 587, 587, 587, 622, 587, 622, 587, 523, 523, 523, 523, 523, 587, 622, 622, 622, 587, 523, 466, 466, 466, 466, 523, 587, 523, 466, 415, 415, 415, 415, 466, 523, 523, 523, 587, 698, 784, 784, 784, 784, 933, 784, 784, 698, 622, 587, 698, 784, 587, 698, 784, 587, 698, 587, 698, 784, 1047, 988, 523, 587, 622, 698, 0 
-};
-unsigned short noteDurations[] = { 
-308, 154, 154, 154, 154, 308, 154, 154, 154, 154, 308, 308, 616, 616, 308, 308, 616, 308, 308, 308, 308, 308, 308, 616, 616, 616, 308, 308, 308, 154, 154, 308, 308, 308, 308, 308, 308, 154, 77, 77, 77, 77, 77, 77, 616, 616, 308, 308, 616, 308, 308, 308, 308, 308, 308, 616, 616, 616, 308, 308, 308, 308, 308, 308, 308, 308, 1232, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 616, 462, 154, 308, 154, 154, 308, 308, 616, 231, 77, 154, 154, 308, 154, 154, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 616, 462, 154, 308, 154, 154, 308, 308, 308, 308, 231, 77, 154, 154, 154, 154, 154, 154, 924, 308, 154, 77, 77, 154, 77, 77, 154, 77, 77, 154, 154, 154, 77, 77, 154, 77, 77, 462, 77, 77, 154, 77, 77, 154, 77, 77, 154, 77, 77, 154, 154, 154, 77, 77, 154, 154, 462, 77, 77, 154, 77, 77, 154, 154, 154, 77, 77, 154, 154, 154, 77, 77, 154, 154, 308, 308, 154, 77, 77, 231, 77, 154, 77, 77, 154, 154, 154, 77, 77, 154, 154, 462, 77, 77, 154, 77, 77, 154, 77, 77, 154, 77, 77, 154, 154, 154, 77, 77, 154, 77, 77, 462, 77, 77, 154, 77, 77, 154, 77, 77, 154, 77, 77, 154, 154, 154, 77, 77, 154, 154, 462, 77, 77, 154, 77, 77, 154, 154, 154, 77, 77, 154, 154, 154, 77, 77, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 308, 77, 77, 77, 77, 0 
-};
 int currentNoteIndex = 0;
 short nextNoteCountdown = 0;
 unsigned short lastNoteCheckTime = 0;
 
-const int numberOfSongs = 5;
-char songTitle[numberOfSongs + 1][17] ={"1,2, Oatmeal    ","Stranger Things ","Mario ft C.Pratt","Tubular Bells I ","Endless Mode    "};
-char fileNames[numberOfSongs][4] = {"oat","str","pra","tub"};
+const PROGMEM unsigned short gravityNotes[] = {698, 587, 440, 587, 698, 587, 440, 587, 698, 523, 440, 523, 698, 523, 440, 523, 659, 554, 440, 554, 659, 554, 440, 554, 659, 554, 440, 554, 659, 554, 440, 554, 587, 659, 698, 880, 784, 784, 880, 523, 587, 659, 698, 659, 784, 880, 784, 698, 0, 698, 698, 698, 880, 880, 784, 698, 0, 880, 880, 880, 784, 880, 784, 698, 0, 698, 698, 698, 880, 880, 784, 698, 0, 880, 880, 880, 0, 1109, 1109, 1109, 0, 698, 698, 698, 880, 880, 784, 698, 0, 933, 933, 933, 784, 1047, 880, 1109, 587, 698, 880, 1047, 554, 659, 880, 1047, 587, 0, 294, 0, 0};
+const PROGMEM unsigned short gravityTimes[] = {176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 1056, 352, 1408, 528, 176, 352, 352, 1408, 1056, 352, 704, 704, 704, 704, 704, 704, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 704, 704, 704, 704, 176, 176, 176, 176, 176, 176, 176, 176, 352, 352, 352, 352, 0};
+
+int rhythmOutput[32] = {};
+const int numberOfSongs = 6;
+char songTitle[numberOfSongs][17] ={"Rand Mode", "Mario", "Kirby", "Stranger", "Attack", "Gravity"};
 int selectedSong;
 int previousSong;
 File songBank;
@@ -50,87 +47,152 @@ void setup()
 
 void loop()
 {
-  lcd.clear();
-  lcd.print("Select a Song:  ");
-  previousSong = 0;
-  while (true){
+
     
-    lcd.setCursor(0,1);
-    selectedSong = map(analogRead(potPin),1023,0,0,numberOfSongs);
-    if (previousSong != selectedSong){
-      lcd.print(songTitle[selectedSong]);
-      previousSong = selectedSong;
-    }
-    
-    if (digitalRead(buttonPin) == HIGH){
-      break;
-    }
-  }
-  if (selectedSong == numberOfSongs + 1){
-    while (true){ //we break when we recieve confirmation that either all or all but one players have been eliminated
-      //endless mode
-    
- lcd.clear();
+    if (gameState ==  0) { //song select
+      lcd.clear();
       
-  for (byte i = 0; i < 32; i++) {
-    int col = i % 16;
-    int row = i / 16;
-    lcd.setCursor(col, row);
-    if (rhythmOutput[i] != 0){
-      lcd.print(rhythmOutput[i]);
+      int pot_val = analogRead(potPin);
+      selectedSong = map(pot_val, 1023, 15, numberOfSongs - 1, 0); //min pot_val 15 as 0 not attainable
+
+      lcd.setCursor(0, 0);
+      lcd.print("Select a Song:  ");
+      lcd.setCursor(0, 1);
+      lcd.print(songTitle[selectedSong]);
+    
+      if (digitalRead(buttonPin) == HIGH){
+        if (selectedSong == 0) {
+          gameState = 1;
+        }
+        else {
+          gameState = 2;
+        }
+      }
+      delay(100);
+
     }
+
+
+    else if (gameState == 1) { //random menu
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("The Rand Menu");
+      delay(100);
+    }
+
+    else if (gameState == 2) { //gameloop
+        
+        
+        
+        if (nextNoteCountdown > 0)
+        {
+          nextNoteCountdown -= millis() - lastNoteCheckTime;
+          lastNoteCheckTime = millis();
+          Serial.println(nextNoteCountdown);
+        }
+        else
+        {
+          lcd.clear();
+          currentNoteIndex++;
+
+          tone(buzzerPin, pgm_read_word(gravityNotes + currentNoteIndex), pgm_read_word(gravityTimes + currentNoteIndex));
+          nextNoteCountdown = pgm_read_word(gravityTimes + currentNoteIndex);
+
+
+          if (1 ==2) {
+            queuePop(rhythmOutput, 32);
+        
+            int newNote = 0;
+            if(random(1, 4) <= 2){
+              newNote = random(1,7);
+            }
+            rhythmOutput[31] = newNote;
+        
+            Wire.beginTransmission(4); //transmit down wire 4
+            Wire.write(0);        // send ID byte
+            Wire.write(rhythmOutput[0]);              // sends one byte  
+            Wire.endTransmission();    // stop transmitting
+          }
+        }
+    }
+
     else{
-      lcd.print('-');
+      Serial.println("def");
     }
-  }
 
-  if (nextNoteCountdown > 0)
-  {
-    nextNoteCountdown -= millis() - lastNoteCheckTime;
-    lastNoteCheckTime = millis();
-    Serial.println(nextNoteCountdown);
-  }
-  else
-  {
-    lcd.clear();
-    currentNoteIndex++;
-    if (currentNoteIndex >= sizeof(melody) / 2)
-    {
-      currentNoteIndex = 0;
+
+
+  if (1 == 2){
+  
+    while (true){
+      lcd.clear();
+      
+      lcd.setCursor(0, 0);
+      lcd.print("Select a Song:  ");
+  
+      int pot_val = analogRead(potPin);
+      selectedSong = map(pot_val, 1023, 15, numberOfSongs - 1, 0); //min pot_val 15 as 0 not attainable
+      
+      lcd.setCursor(0,1);
+      lcd.print(songTitle[selectedSong]);
+      
+      if (digitalRead(buttonPin) == HIGH){
+        break;
+      }
+  
+      delay(100);
     }
-    tone(buzzerPin, melody[currentNoteIndex], noteDurations[currentNoteIndex]);
-    nextNoteCountdown = noteDurations[currentNoteIndex];
-    Serial.println(nextNoteCountdown);
-
+    if (selectedSong == numberOfSongs + 1){
+      while (true){ //we break when we recieve confirmation that either all or all but one players have been eliminated
+        //endless mode
+      
+   lcd.clear();
+    for (byte i = 0; i < 32; i++) {
+      int col = i % 16;
+      int row = i / 16;
+      lcd.setCursor(col, row);
+      if (rhythmOutput[i] != 0){
+        lcd.print(rhythmOutput[i]);
+      }
+      else{
+        lcd.print('-');
+      }
+    }
+  
+    if (rhythmOutput[0] != 0){
+      int note = rhythmOutput[0] * 250 / 1.5;
+      if(rhythmOutput[0] == rhythmOutput[1]){
+        tone(buzzerPin, note, noteTime * 2);
+        tone(buzzerPin2, note / 2, noteTime * 2);
+      }
+      else{
+        tone(buzzerPin, note, noteTime);
+        tone(buzzerPin2, note / 2, noteTime);
+      }
+      
+    }
+    
     queuePop(rhythmOutput, 32);
-
+  
     int newNote = 0;
     if(random(1, 4) <= 2){
       newNote = random(1,7);
     }
     rhythmOutput[31] = newNote;
-
+    
+    delay(noteTime);
+  
     Wire.beginTransmission(4); //transmit down wire 4
     Wire.write(0);        // send ID byte
     Wire.write(rhythmOutput[0]);              // sends one byte  
     Wire.endTransmission();    // stop transmitting
-  }
-
-  rhythmOutput[31] = newNote;
-  
-  delay(noteTime);
-
-  Wire.beginTransmission(4); //transmit down wire 4
-  Wire.write(0);        // send ID byte
-  Wire.write(rhythmOutput[0]);              // sends one byte  
-  Wire.endTransmission();    // stop transmitting
+      }
     }
-  }else{
-    songBank = SD.open(fileNames[selectedSong]);
-    // = songBank.read(); not sure what kind of data structure we need
-    songBank.close();
-    //Then we insert the code that Sam made
+   
   }
+  
+  
+ 
 }
 
 
