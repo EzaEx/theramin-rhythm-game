@@ -25,7 +25,7 @@ const PROGMEM unsigned short gravityTimes[] = {176, 176, 176, 176, 176, 176, 176
 
 int rhythmOutput[32] = {};
 const int numberOfSongs = 6;
-char songTitle[numberOfSongs][17] ={"Rand Mode", "Mario", "Kirby", "Stranger", "Attack", "Gravity"};
+char songTitle[numberOfSongs][17] = {"Rand Mode", "Mario", "Kirby", "Stranger", "Attack", "Gravity"};
 int selectedSong;
 int previousSong;
 File songBank;
@@ -36,172 +36,181 @@ void setup()
   Wire.onReceive(receiveEvent); // assign "recieve event" method to run when data is recieved
   Serial.begin(9600); // start serial for output
   pinMode(buttonPin, INPUT);
-  
+
   lcd.begin(16, 2); //set up lcd
-  
+
   for (byte i = 0; i < 32; i++) { //init array to be all - with one 0
-    rhythmOutput[i] = 0;  
+    rhythmOutput[i] = 0;
   }
 }
 
 
 void loop()
 {
+  if (gameState ==  0)
+  { //song select
+    lcd.clear();
 
-    
-    if (gameState ==  0) { //song select
-      lcd.clear();
-      
-      int pot_val = analogRead(potPin);
-      selectedSong = map(pot_val, 1023, 15, numberOfSongs - 1, 0); //min pot_val 15 as 0 not attainable
+    int pot_val = analogRead(potPin);
+    selectedSong = map(pot_val, 1023, 15, numberOfSongs - 1, 0); //min pot_val 15 as 0 not attainable
 
-      lcd.setCursor(0, 0);
-      lcd.print("Select a Song:  ");
-      lcd.setCursor(0, 1);
-      lcd.print(songTitle[selectedSong]);
-    
-      if (digitalRead(buttonPin) == HIGH){
-        if (selectedSong == 0) {
-          gameState = 1;
-        }
-        else {
-          gameState = 2;
-        }
+    lcd.setCursor(0, 0);
+    lcd.print("Select a Song:  ");
+    lcd.setCursor(0, 1);
+    lcd.print(songTitle[selectedSong]);
+
+    if (digitalRead(buttonPin) == HIGH)
+    {
+      if (selectedSong == 0)
+      {
+        gameState = 1;
       }
-      delay(100);
-
+      else
+      {
+        gameState = 2;
+      }
     }
+    delay(100);
+  }
+  else if (gameState == 1)
+  { //random menu
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("The Rand Menu");
+    delay(100);
+  }
 
-
-    else if (gameState == 1) { //random menu
+  else if (gameState == 2)
+  { //gameloop
+    if (nextNoteCountdown > 0)
+    {
+      nextNoteCountdown -= millis() - lastNoteCheckTime;
+      lastNoteCheckTime = millis();
+      Serial.println(nextNoteCountdown);
+    }
+    else
+    {
       lcd.clear();
-      lcd.setCursor(0, 0);
-      lcd.print("The Rand Menu");
-      delay(100);
-    }
+      currentNoteIndex++;
 
-    else if (gameState == 2) { //gameloop
-        
-        
-        
-        if (nextNoteCountdown > 0)
+      tone(buzzerPin, pgm_read_word(gravityNotes + currentNoteIndex), pgm_read_word(gravityTimes + currentNoteIndex));
+      nextNoteCountdown = pgm_read_word(gravityTimes + currentNoteIndex);
+
+
+      if (1 == 2)
+      {
+        queuePop(rhythmOutput, 32);
+
+        int newNote = 0;
+        if (random(1, 4) <= 2)
         {
-          nextNoteCountdown -= millis() - lastNoteCheckTime;
-          lastNoteCheckTime = millis();
-          Serial.println(nextNoteCountdown);
+          newNote = random(1, 7);
         }
-        else
-        {
-          lcd.clear();
-          currentNoteIndex++;
+        rhythmOutput[31] = newNote;
 
-          tone(buzzerPin, pgm_read_word(gravityNotes + currentNoteIndex), pgm_read_word(gravityTimes + currentNoteIndex));
-          nextNoteCountdown = pgm_read_word(gravityTimes + currentNoteIndex);
-
-
-          if (1 ==2) {
-            queuePop(rhythmOutput, 32);
-        
-            int newNote = 0;
-            if(random(1, 4) <= 2){
-              newNote = random(1,7);
-            }
-            rhythmOutput[31] = newNote;
-        
-            Wire.beginTransmission(4); //transmit down wire 4
-            Wire.write(0);        // send ID byte
-            Wire.write(rhythmOutput[0]);              // sends one byte  
-            Wire.endTransmission();    // stop transmitting
-          }
-        }
-    }
-
-    else{
-      Serial.println("def");
-    }
-
-
-
-  if (1 == 2){
-  
-    while (true){
-      lcd.clear();
-      
-      lcd.setCursor(0, 0);
-      lcd.print("Select a Song:  ");
-  
-      int pot_val = analogRead(potPin);
-      selectedSong = map(pot_val, 1023, 15, numberOfSongs - 1, 0); //min pot_val 15 as 0 not attainable
-      
-      lcd.setCursor(0,1);
-      lcd.print(songTitle[selectedSong]);
-      
-      if (digitalRead(buttonPin) == HIGH){
-        break;
-      }
-  
-      delay(100);
-    }
-    if (selectedSong == numberOfSongs + 1){
-      while (true){ //we break when we recieve confirmation that either all or all but one players have been eliminated
-        //endless mode
-      
-   lcd.clear();
-    for (byte i = 0; i < 32; i++) {
-      int col = i % 16;
-      int row = i / 16;
-      lcd.setCursor(col, row);
-      if (rhythmOutput[i] != 0){
-        lcd.print(rhythmOutput[i]);
-      }
-      else{
-        lcd.print('-');
+        Wire.beginTransmission(4); //transmit down wire 4
+        Wire.write(0);        // send ID byte
+        Wire.write(rhythmOutput[0]);              // sends one byte
+        Wire.endTransmission();    // stop transmitting
       }
     }
-  
-    if (rhythmOutput[0] != 0){
-      int note = rhythmOutput[0] * 250 / 1.5;
-      if(rhythmOutput[0] == rhythmOutput[1]){
-        tone(buzzerPin, note, noteTime * 2);
-        tone(buzzerPin2, note / 2, noteTime * 2);
-      }
-      else{
-        tone(buzzerPin, note, noteTime);
-        tone(buzzerPin2, note / 2, noteTime);
-      }
-      
-    }
-    
-    queuePop(rhythmOutput, 32);
-  
-    int newNote = 0;
-    if(random(1, 4) <= 2){
-      newNote = random(1,7);
-    }
-    rhythmOutput[31] = newNote;
-    
-    delay(noteTime);
-  
-    Wire.beginTransmission(4); //transmit down wire 4
-    Wire.write(0);        // send ID byte
-    Wire.write(rhythmOutput[0]);              // sends one byte  
-    Wire.endTransmission();    // stop transmitting
-      }
-    }
-   
+  }
+  else
+  {
+    Serial.println("def");
   }
   
-  
- 
+  if (1 == 2)
+  {
+    while (true)
+    {
+      lcd.clear();
+
+      lcd.setCursor(0, 0);
+      lcd.print("Select a Song:  ");
+
+      int pot_val = analogRead(potPin);
+      selectedSong = map(pot_val, 1023, 15, numberOfSongs - 1, 0); //min pot_val 15 as 0 not attainable
+
+      lcd.setCursor(0, 1);
+      lcd.print(songTitle[selectedSong]);
+
+      if (digitalRead(buttonPin) == HIGH)
+      {
+        break;
+      }
+
+      delay(100);
+    }
+    if (selectedSong == numberOfSongs + 1)
+    {
+      while (true)
+      { //we break when we recieve confirmation that either all or all but one players have been eliminated
+        //endless mode
+
+        lcd.clear();
+        for (byte i = 0; i < 32; i++)
+        {
+          int col = i % 16;
+          int row = i / 16;
+          lcd.setCursor(col, row);
+          if (rhythmOutput[i] != 0)
+          {
+            lcd.print(rhythmOutput[i]);
+          }
+          else
+          {
+            lcd.print('-');
+          }
+        }
+
+        if (rhythmOutput[0] != 0)
+        {
+          int note = rhythmOutput[0] * 250 / 1.5;
+          if (rhythmOutput[0] == rhythmOutput[1])
+          {
+            tone(buzzerPin, note, noteTime * 2);
+            tone(buzzerPin2, note / 2, noteTime * 2);
+          }
+          else
+          {
+            tone(buzzerPin, note, noteTime);
+            tone(buzzerPin2, note / 2, noteTime);
+          }
+
+        }
+
+        queuePop(rhythmOutput, 32);
+
+        int newNote = 0;
+        if (random(1, 4) <= 2)
+        {
+          newNote = random(1, 7);
+        }
+        rhythmOutput[31] = newNote;
+
+        delay(noteTime);
+
+        Wire.beginTransmission(4); //transmit down wire 4
+        Wire.write(0);        // send ID byte
+        Wire.write(rhythmOutput[0]);              // sends one byte
+        Wire.endTransmission();    // stop transmitting
+      }
+    }
+  }
 }
 
 
-void queuePop(int arr[], int arrSize){
-  for (byte i = 0; i < arrSize; i++) {
-    if (i < arrSize - 1){
+void queuePop(int arr[], int arrSize)
+{
+  for (byte i = 0; i < arrSize; i++)
+  {
+    if (i < arrSize - 1)
+    {
       arr[i] = arr[i + 1];
     }
-    else{
+    else
+    {
       arr[i] = 0;
     }
   }
@@ -212,15 +221,17 @@ void receiveEvent(int howMany)
 {
   int c = Wire.read();
   String from = "From unknown: ";
-  
-  if (c == 1){
+
+  if (c == 1)
+  {
     from = "From client 1: ";
   }
-  else if (c == 2){
+  else if (c == 2)
+  {
     from = "From client 2: ";
   }
-  
-  while(Wire.available()) // loop through all remaining bytes
+
+  while (Wire.available()) // loop through all remaining bytes
   {
     int c = Wire.read(); // receive byte as a character
     Serial.print(from);
