@@ -23,7 +23,7 @@ unsigned short lastNoteCheckTime = 0;
 const PROGMEM unsigned short gravityNotes[] = {698, 587, 440, 587, 698, 587, 440, 587, 698, 523, 440, 523, 698, 523, 440, 523, 659, 554, 440, 554, 659, 554, 440, 554, 659, 554, 440, 554, 659, 554, 440, 554, 587, 659, 698, 880, 784, 784, 880, 523, 587, 659, 698, 659, 784, 880, 784, 698, 0, 698, 698, 698, 880, 880, 784, 698, 0, 880, 880, 880, 784, 880, 784, 698, 0, 698, 698, 698, 880, 880, 784, 698, 0, 880, 880, 880, 0, 1109, 1109, 1109, 0, 698, 698, 698, 880, 880, 784, 698, 0, 933, 933, 933, 784, 1047, 880, 1109, 587, 698, 880, 1047, 554, 659, 880, 1047, 587, 0, 294, 0, 0};
 const PROGMEM unsigned short gravityTimes[] = {176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 1056, 352, 1408, 528, 176, 352, 352, 1408, 1056, 352, 704, 704, 704, 704, 704, 704, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 704, 704, 704, 704, 176, 176, 176, 176, 176, 176, 176, 176, 352, 352, 352, 352, 0};
 
-int rhythmOutput[32] = {};
+byte upcomingNotes[16] = {};
 const int numberOfSongs = 6;
 char songTitle[numberOfSongs][17] = {"Rand Mode", "Mario", "Kirby", "Stranger", "Attack", "Gravity"};
 int selectedSong;
@@ -39,8 +39,8 @@ void setup()
 
   lcd.begin(16, 2); //set up lcd
 
-  for (byte i = 0; i < 32; i++) { //init array to be all - with one 0
-    rhythmOutput[i] = 0;
+  for (byte i = 0; i < 16; i++) { //init array to be all - with one 0
+    //rhythmOutput[i] = 0;
   }
 }
 
@@ -67,6 +67,7 @@ void loop()
       }
       else
       {
+        setupGame();
         gameState = 2;
       }
     }
@@ -86,32 +87,33 @@ void loop()
     {
       nextNoteCountdown -= millis() - lastNoteCheckTime;
       lastNoteCheckTime = millis();
-      Serial.println(nextNoteCountdown);
     }
     else
     {
       lcd.clear();
-      currentNoteIndex++;
 
       tone(buzzerPin, pgm_read_word(gravityNotes + currentNoteIndex), pgm_read_word(gravityTimes + currentNoteIndex));
       nextNoteCountdown = pgm_read_word(gravityTimes + currentNoteIndex);
+      byte newNote = frequencyToNote(pgm_read_word(gravityNotes + currentNoteIndex));
 
-
-      if (1 == 2)
-      {
-        queuePop(rhythmOutput, 32);
-
-        int newNote = 0;
-        if (random(1, 4) <= 2)
+        queuePop(upcomingNotes, 16);
+        upcomingNotes[15] = frequencyToNote(pgm_read_word(gravityNotes + currentNoteIndex + 15));
+        lcd.setCursor(0, 0);
+        for (int i = 0; i < 16; i++)
         {
-          newNote = random(1, 7);
+          lcd.print(upcomingNotes[i]);
         }
-        rhythmOutput[31] = newNote;
 
         Wire.beginTransmission(4); //transmit down wire 4
         Wire.write(0);        // send ID byte
-        Wire.write(rhythmOutput[0]);              // sends one byte
+        Wire.write(newNote);              // sends one byte
         Wire.endTransmission();    // stop transmitting
+
+      currentNoteIndex++;
+      if (currentNoteIndex >= (sizeof(gravityNotes) / 2))
+      {
+        Serial.println(currentNoteIndex);
+        gameState = 0;
       }
     }
   }
@@ -154,46 +156,46 @@ void loop()
           int col = i % 16;
           int row = i / 16;
           lcd.setCursor(col, row);
-          if (rhythmOutput[i] != 0)
-          {
-            lcd.print(rhythmOutput[i]);
-          }
-          else
-          {
+          //if (rhythmOutput[i] != 0)
+          //{
+            //lcd.print(rhythmOutput[i]);
+          //}
+          //else
+          //{
             lcd.print('-');
-          }
+          //}
         }
 
-        if (rhythmOutput[0] != 0)
-        {
-          int note = rhythmOutput[0] * 250 / 1.5;
-          if (rhythmOutput[0] == rhythmOutput[1])
-          {
-            tone(buzzerPin, note, noteTime * 2);
-            tone(buzzerPin2, note / 2, noteTime * 2);
-          }
-          else
-          {
-            tone(buzzerPin, note, noteTime);
-            tone(buzzerPin2, note / 2, noteTime);
-          }
+        //if (rhythmOutput[0] != 0)
+        //{
+          //int note = rhythmOutput[0] * 250 / 1.5;
+          //if (rhythmOutput[0] == rhythmOutput[1])
+          //{
+            //tone(buzzerPin, note, noteTime * 2);
+            //tone(buzzerPin2, note / 2, noteTime * 2);
+          //}
+          //else
+          //{
+            //tone(buzzerPin, note, noteTime);
+            //tone(buzzerPin2, note / 2, noteTime);
+          //}
 
-        }
+        //}
 
-        queuePop(rhythmOutput, 32);
+        //queuePop(rhythmOutput, 32);
 
         int newNote = 0;
         if (random(1, 4) <= 2)
         {
           newNote = random(1, 7);
         }
-        rhythmOutput[31] = newNote;
+      //rhythmOutput[31] = newNote;
 
         delay(noteTime);
 
         Wire.beginTransmission(4); //transmit down wire 4
         Wire.write(0);        // send ID byte
-        Wire.write(rhythmOutput[0]);              // sends one byte
+        //Wire.write(rhythmOutput[0]);              // sends one byte
         Wire.endTransmission();    // stop transmitting
       }
     }
@@ -201,7 +203,7 @@ void loop()
 }
 
 
-void queuePop(int arr[], int arrSize)
+void queuePop(byte arr[], int arrSize)
 {
   for (byte i = 0; i < arrSize; i++)
   {
@@ -216,6 +218,20 @@ void queuePop(int arr[], int arrSize)
   }
 }
 
+void setupGame()
+{
+  for (byte i = 0; i < 16; i++)
+  {
+    byte note = frequencyToNote(pgm_read_word(gravityNotes + i));
+    upcomingNotes[i] = note;
+  }
+}
+
+byte frequencyToNote(int frequency)
+{
+  int newNote = min(pgm_read_word(gravityNotes + currentNoteIndex) / 100, 8) - 2;
+  return max(newNote, 0);
+}
 
 void receiveEvent(int howMany)
 {
