@@ -16,7 +16,7 @@ const int noteTime = 400;
 
 int gameState = 0;
 
-int currentNoteIndex = 0;
+int currentNoteIndex = -15;
 short nextNoteCountdown = 0;
 unsigned short lastNoteCheckTime = 0;
 
@@ -85,7 +85,6 @@ void loop()
       else
       {
         setupGame();
-        Serial.println(selectedSong);
         gameState = 2;
       }
     }
@@ -156,12 +155,16 @@ void loop()
     {
       lcd.clear();
 
-      tone(buzzerPin, pgm_read_word((songTable[(selectedSong - 1) * 2]) + currentNoteIndex), pgm_read_word((songTable[(selectedSong - 1) * 2 + 1]) + currentNoteIndex));
-      nextNoteCountdown = pgm_read_word((songTable[(selectedSong - 1) * 2 + 1]) + currentNoteIndex);
-      byte newNote = frequencyToNote(pgm_read_word((songTable[(selectedSong - 1) * 2]) + currentNoteIndex));
-
+      if (currentNoteIndex >= 0){
+        tone(buzzerPin, pgm_read_word((songTable[(selectedSong - 1) * 2]) + currentNoteIndex), pgm_read_word((songTable[(selectedSong - 1) * 2 + 1]) + currentNoteIndex));
+        nextNoteCountdown = pgm_read_word((songTable[(selectedSong - 1) * 2 + 1]) + currentNoteIndex);
+      }
+      else
+      {
+        nextNoteCountdown = 100;
+      }
         queuePop(upcomingNotes, 16);
-        upcomingNotes[15] = frequencyToNote(pgm_read_word((songTable[(selectedSong - 1) * 2]) + currentNoteIndex + 15 * 8));
+        upcomingNotes[15] = frequencyToNote(pgm_read_word((songTable[(selectedSong - 1) * 2]) + currentNoteIndex + 15));
         lcd.setCursor(0, 0);
         for (int i = 0; i < 16; i++)
         {
@@ -171,7 +174,7 @@ void loop()
         int highest_player = -1;
         for (int i = 0; i < 3; i++)
         {
-          if (playerScores[i] >highest_score){
+          if (playerScores[i] > highest_score){
             highest_score = playerScores[i];
             highest_player = i;
           }
@@ -191,7 +194,7 @@ void loop()
 
         Wire.beginTransmission(4); //transmit down wire 4
         Wire.write(0);        // send ID byte
-        Wire.write(newNote);              // sends one byte
+        Wire.write(upcomingNotes[0]);              // sends one byte
         Wire.endTransmission();    // stop transmitting
 
       currentNoteIndex++;
@@ -205,85 +208,6 @@ void loop()
   else
   {
     Serial.println("Unrecognised Gamestate");
-  }
-  
-  if (1 == 2)
-  {
-    while (true)
-    {
-      lcd.clear();
-
-      lcd.setCursor(0, 0);
-      lcd.print("Select a Song:  ");
-
-      int pot_val = analogRead(potPin);
-      selectedSong = map(pot_val, 1023, 15, numberOfSongs - 1, 0); //min pot_val 15 as 0 not attainable
-
-      lcd.setCursor(0, 1);
-      lcd.print(songTitle[selectedSong]);
-
-      if (digitalRead(buttonPin) == HIGH)
-      {
-        break;
-      }
-
-      delay(100);
-    }
-    if (selectedSong == numberOfSongs + 1)
-    {
-      while (true)
-      { //we break when we recieve confirmation that either all or all but one players have been eliminated
-        //endless mode
-
-        lcd.clear();
-        for (byte i = 0; i < 32; i++)
-        {
-          int col = i % 16;
-          int row = i / 16;
-          lcd.setCursor(col, row);
-          //if (rhythmOutput[i] != 0)
-          //{
-            //lcd.print(rhythmOutput[i]);
-          //}
-          //else
-          //{
-            lcd.print('-');
-          //}
-        }
-
-        //if (rhythmOutput[0] != 0)
-        //{
-          //int note = rhythmOutput[0] * 250 / 1.5;
-          //if (rhythmOutput[0] == rhythmOutput[1])
-          //{
-            //tone(buzzerPin, note, noteTime * 2);
-            //tone(buzzerPin2, note / 2, noteTime * 2);
-          //}
-          //else
-          //{
-            //tone(buzzerPin, note, noteTime);
-            //tone(buzzerPin2, note / 2, noteTime);
-          //}
-
-        //}
-
-        //queuePop(rhythmOutput, 32);
-
-        int newNote = 0;
-        if (random(1, 4) <= 2)
-        {
-          newNote = random(1, 7);
-        }
-      //rhythmOutput[31] = newNote;
-
-        delay(noteTime);
-
-        Wire.beginTransmission(4); //transmit down wire 4
-        Wire.write(0);        // send ID byte
-        //Wire.write(rhythmOutput[0]);              // sends one byte
-        Wire.endTransmission();    // stop transmitting
-      }
-    }
   }
 }
 
@@ -305,16 +229,17 @@ void queuePop(byte arr[], int arrSize)
 
 void setupGame()
 {
+  currentNoteIndex = -15;
+  
   for (byte i = 0; i < 16; i++)
   {
-    byte note = frequencyToNote(pgm_read_word((songTable[(selectedSong - 1) * 2]) + i));
-    upcomingNotes[i] = note;
+    upcomingNotes[i] = 0;
   }
 }
 
 byte frequencyToNote(int frequency)
 {
-  int newNote = min(pgm_read_word((songTable[(selectedSong - 1) * 2]) + currentNoteIndex) / 100, 8) - 2;
+  int newNote = min(frequency / 100, 8) - 2;
   return max(newNote, 0);
 }
 
