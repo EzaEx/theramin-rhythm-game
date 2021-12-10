@@ -3,7 +3,7 @@
 #include "Ultrasonic.h"
 
 // need to change this variable for each client (1,2,3)
-const byte deviceAddress = 2;
+const byte deviceAddress = 3;
 
 const int pressurePadPin = 3;
 const int rs = 12, en = 11, d4 = 6, d5 = 7, d6 = 8, d7 = 9;
@@ -67,7 +67,7 @@ void loop()
     {
       // calculate points in regards to the ultrasensor and how fast the player was
       unsigned long playerSpeed = timePressed - timeReceived;
-      int points = 1000 - min(abs(currentNote - height/5) * 200 - playerSpeed, 1000);
+      int points = 1000 - min(abs(currentNote - height/5) * 200 - playerSpeed, 999);
       currentNote = 0;
       score += points;
       Wire.beginTransmission(4); //transmit down wire 4
