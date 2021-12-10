@@ -141,7 +141,7 @@ void loop()
       byte newNote = frequencyToNote(pgm_read_word((songTable[(selectedSong - 1) * 2]) + currentNoteIndex));
 
         queuePop(upcomingNotes, 16);
-        upcomingNotes[15] = frequencyToNote(pgm_read_word((songTable[(selectedSong - 1) * 2]) + currentNoteIndex + 15));
+        upcomingNotes[15] = frequencyToNote(pgm_read_word((songTable[(selectedSong - 1) * 2]) + currentNoteIndex + 15 * 8));
         lcd.setCursor(0, 0);
         for (int i = 0; i < 16; i++)
         {
