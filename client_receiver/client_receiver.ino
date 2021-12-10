@@ -62,6 +62,10 @@ void loop()
       int points = 1000 - min(abs(currentNote - height/5) * 200 - playerSpeed, 1000);
       currentNote = 0;
       score += points;
+      Wire.beginTransmission(4); //transmit down wire 4
+      Wire.write(deviceAddress);        // send ID byte
+      Wire.write(score);              // sends one byte  
+      Wire.endTransmission();    // stop transmitting
     }
   }
   else if (digitalRead(pressurePadPin) == true && prevPressed)
