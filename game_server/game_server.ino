@@ -36,7 +36,7 @@ const PROGMEM unsigned short strangerNotes[] = {698, 587, 440, 587, 698, 587, 44
 const PROGMEM unsigned short strangerTimes[] = {176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 176, 1056, 352, 1408, 528, 176, 352, 352, 1408, 1056, 352, 704, 704, 704, 704, 704, 704, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 352, 704, 704, 704, 704, 176, 176, 176, 176, 176, 176, 176, 176, 352, 352, 352, 352, 0};
 
 
-const PROGMEM unsigned short *const songTable[] = {gravityNotes, gravityTimes, attackNotes, attackTimes, marioNotes, marioTimes, kirbyNotes, kirbyTimes, strangerNotes, strangerTimes}; 
+const unsigned short* const songTable[] = {gravityNotes, gravityTimes, attackNotes, attackTimes, marioNotes, marioTimes, kirbyNotes, kirbyTimes, strangerNotes, strangerTimes}; 
 
 byte randNotes[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -56,10 +56,6 @@ void setup()
   pinMode(buttonPin, INPUT);
 
   lcd.begin(16, 2); //set up lcd
-
-  for (byte i = 0; i < 16; i++) { //init array to be all - with one 0
-    //rhythmOutput[i] = 0;
-  }
 }
 
 
@@ -133,12 +129,12 @@ void loop()
     {
       lcd.clear();
 
-      tone(buzzerPin, pgm_read_word(&(songTable[(selectedSong - 1) * 2]) + currentNoteIndex), pgm_read_word(&(songTable[(selectedSong - 1) * 2 + 1]) + currentNoteIndex));
-      nextNoteCountdown = pgm_read_word(&(songTable[(selectedSong - 1) * 2 + 1]) + currentNoteIndex);
-      byte newNote = frequencyToNote(pgm_read_word(&(songTable[(selectedSong - 1) * 2]) + currentNoteIndex));
+      tone(buzzerPin, pgm_read_word((songTable[(selectedSong - 1) * 2]) + currentNoteIndex), pgm_read_word((songTable[(selectedSong - 1) * 2 + 1]) + currentNoteIndex));
+      nextNoteCountdown = pgm_read_word((songTable[(selectedSong - 1) * 2 + 1]) + currentNoteIndex);
+      byte newNote = frequencyToNote(pgm_read_word((songTable[(selectedSong - 1) * 2]) + currentNoteIndex));
 
         queuePop(upcomingNotes, 16);
-        upcomingNotes[15] = frequencyToNote(pgm_read_word(&(songTable[(selectedSong - 1) * 2]) + currentNoteIndex + 15));
+        upcomingNotes[15] = frequencyToNote(pgm_read_word((songTable[(selectedSong - 1) * 2]) + currentNoteIndex + 15));
         lcd.setCursor(0, 0);
         for (int i = 0; i < 16; i++)
         {
@@ -263,14 +259,14 @@ void setupGame()
 {
   for (byte i = 0; i < 16; i++)
   {
-    byte note = frequencyToNote(pgm_read_word(&(songTable[(selectedSong - 1) * 2]) + i));
+    byte note = frequencyToNote(pgm_read_word((songTable[(selectedSong - 1) * 2]) + i));
     upcomingNotes[i] = note;
   }
 }
 
 byte frequencyToNote(int frequency)
 {
-  int newNote = min(pgm_read_word(&(songTable[(selectedSong - 1) * 2]) + currentNoteIndex) / 100, 8) - 2;
+  int newNote = min(pgm_read_word((songTable[(selectedSong - 1) * 2]) + currentNoteIndex) / 100, 8) - 2;
   return max(newNote, 0);
 }
 
