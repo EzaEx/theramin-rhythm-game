@@ -114,8 +114,28 @@ void loop()
         {
           lcd.print(randNotes[i]);
         }
+
+        int highest_score = -10000;
+        int highest_player = -1;
+        for (int i = 0; i < 3; i++)
+        {
+          if (playerScores[i] >highest_score){
+            highest_score = playerScores[i];
+            highest_player = i;
+          }
+          else if (playerScores[i] == highest_score){
+            highest_player = -1;
+          }
+        }
         lcd.setCursor(0, 1);
-        lcd.print(playerScores[0]);
+        if (highest_player != -1){
+          lcd.print("P");
+          lcd.print(highest_player);
+          lcd.print(" in lead");
+        }
+        else{
+          lcd.print("tie!");
+        }
 
 
         Wire.beginTransmission(4); //transmit down wire 4
@@ -147,8 +167,27 @@ void loop()
         {
           lcd.print(upcomingNotes[i]);
         }
+       int highest_score = -10000;
+        int highest_player = -1;
+        for (int i = 0; i < 3; i++)
+        {
+          if (playerScores[i] >highest_score){
+            highest_score = playerScores[i];
+            highest_player = i;
+          }
+          else if (playerScores[i] == highest_score){
+            highest_player = -1;
+          }
+        }
         lcd.setCursor(0, 1);
-        lcd.print(playerScores[0]);
+        if (highest_player != -1){
+          lcd.print("P");
+          lcd.print(highest_player + 1);
+          lcd.print(" in lead");
+        }
+        else{
+          lcd.print("tie!");
+        }
 
         Wire.beginTransmission(4); //transmit down wire 4
         Wire.write(0);        // send ID byte
@@ -282,7 +321,9 @@ byte frequencyToNote(int frequency)
 void receiveEvent(int howMany)
 {
   int index = Wire.read();
-  int score = Wire.read();
+
+  int score = Wire.read() << 8;
+  score |= Wire.read();
 
   playerScores[index - 1] = score;
 

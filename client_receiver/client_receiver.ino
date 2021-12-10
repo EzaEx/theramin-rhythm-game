@@ -3,7 +3,7 @@
 #include "Ultrasonic.h"
 
 // need to change this variable for each client (1,2,3)
-const byte deviceAddress = 1;
+const byte deviceAddress = 2;
 
 const int pressurePadPin = 3;
 const int rs = 12, en = 11, d4 = 6, d5 = 7, d6 = 8, d7 = 9;
@@ -38,8 +38,15 @@ void loop()
 {
   lcd.setCursor(0, 0);
   lcd.print(currentNote);
-  lcd.setCursor(0, 1);
+  // print score
+  lcd.setCursor(0, 10);
+  if (score < 100000) lcd.print(" ");
+  if (score < 10000) lcd.print(" ");
+  if (score < 1000) lcd.print(" ");
+  if (score < 100) lcd.print(" ");
+  if (score < 10) lcd.print(" ");
   lcd.print(score);
+  // print ultrasensor reading
   lcd.setCursor(12, 0);
   int height = ultrasonic.MeasureInCentimeters();
   if (height/5 < 1000) lcd.print(" ");
@@ -54,6 +61,7 @@ void loop()
     if (currentNote == 0)
     {
       score -= 300;
+      score = max(score, 0);
     }
     else
     {
@@ -64,7 +72,8 @@ void loop()
       score += points;
       Wire.beginTransmission(4); //transmit down wire 4
       Wire.write(deviceAddress);        // send ID byte
-      Wire.write(score);              // sends one byte  
+      Wire.write(score >> 8);
+      Wire.write(score & 255);
       Wire.endTransmission();    // stop transmitting
     }
   }
