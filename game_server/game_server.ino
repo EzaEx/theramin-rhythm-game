@@ -43,7 +43,7 @@ byte randNotes[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 byte upcomingNotes[16] = {};
 const int numberOfSongs = 6;
-char songTitle[numberOfSongs][17] = {"Rand Mode", "Mario", "Kirby", "Stranger", "Attack", "Gravity"};
+char songTitle[numberOfSongs][17] = {"Rand Mode", "Gravity", "Attack", "Mario", "Kirby", "Stranger"};
 int selectedSong;
 int previousSong;
 File songBank;
@@ -82,6 +82,7 @@ void loop()
       else
       {
         setupGame();
+        Serial.println(selectedSong);
         gameState = 2;
       }
     }
