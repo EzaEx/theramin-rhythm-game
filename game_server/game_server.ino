@@ -1,7 +1,6 @@
 #include <Wire.h>
 #include <LiquidCrystal.h>
 #include <SPI.h>
-#include <SD.h>
 
 const int rs = 12, en = 11, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //define lcd pins
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7); //instantiate lcd object w/ pins
@@ -49,7 +48,6 @@ const int numberOfSongs = 6;
 char songTitle[numberOfSongs][17] = {"Rand Mode", "Gravity", "Attack", "Mario", "Kirby", "Stranger"};
 int selectedSong;
 int previousSong;
-File songBank;
 
 void setup()
 {
@@ -66,11 +64,6 @@ void loop()
 {
   if (gameState ==  0)
   { //song select
-    
-    playerScores[0] = 0;
-    playerScores[1] = 0;
-    playerScores[2] = 0;
-    lcd.clear();
 
     int pot_val = analogRead(potPin);
     selectedSong = map(pot_val, 1023, 15, numberOfSongs - 1, 0); //min pot_val 15 as 0 not attainable
@@ -83,9 +76,6 @@ void loop()
     {
       if (selectedSong == 0)
       {
-        noteTime = 400;
-        nextNoteCountdown = 0;
-        lastNoteCheckTime = millis();
         gameState = 1;
       }
       else
@@ -95,6 +85,7 @@ void loop()
       }
     }
     delay(100);
+    lcd.clear();
   }
   else if (gameState == 1)
   { //random mode
@@ -104,8 +95,7 @@ void loop()
       lastNoteCheckTime = millis();
     }
     else if (noteTime < 50){
-      gameState = 0;
-      noTone(buzzerPin);
+      gameState = 3;
     }
     else
     {
@@ -114,7 +104,7 @@ void loop()
       
       tone(buzzerPin, (int)randNotes[0] * 100, noteTime);
       nextNoteCountdown = noteTime;
-      noteTime-=2;
+      noteTime-=4;
       byte newNote = random(0, 7);
 
         
@@ -215,10 +205,52 @@ void loop()
       if (currentNoteIndex >= 0){
         if (pgm_read_word((songTable[(selectedSong - 1) * 2]) + currentNoteIndex) == 65535)
         {
-          gameState = 0;
+          gameState = 3;
         }
       }
     }
+  }
+  else if (gameState == 3)
+  {
+      int highest_score = -10000;
+      int highest_player = -1;
+      for (int i = 0; i < 3; i++)
+      {
+        if (playerScores[i] > highest_score){
+          highest_score = playerScores[i];
+          highest_player = i;
+        }
+        else if (playerScores[i] == highest_score){
+          highest_player = -1;
+        }
+      }
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      if (highest_player != -1){
+        lcd.print("Player ");
+        lcd.print(highest_player + 1);
+        lcd.setCursor(0, 1);
+        lcd.print("Wins!!!");
+      }
+      else{
+        lcd.print("It was a tie!");
+      }
+      noTone(buzzerPin);
+      delay(5000);
+      gameState = 0;
+      playerScores[0] = 0;
+    playerScores[1] = 0;
+    playerScores[2] = 0;
+    noteTime = 400;
+        nextNoteCountdown = 0;
+        lastNoteCheckTime = millis();
+
+    Wire.beginTransmission(4); //transmit down wire 4
+        Wire.write(255);        // send ID byte
+         // sends one byte
+        Wire.endTransmission();    // stop transmitting
+        
+    lcd.clear();
   }
   else
   {
