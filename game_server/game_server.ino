@@ -254,8 +254,17 @@ void setupGame()
 
 byte frequencyToNote(int frequency)
 {
-  int newNote = min(frequency / 100, 8) - 2;
-  return max(newNote, 0);
+  // if song is attack or stranger
+  if (selectedSong == 2 or selectedSong == 5)
+  {
+    int newNote = min(frequency / 30 , 10) - 2;
+    return max(newNote, 0);
+  }
+  else
+  {
+    int newNote = min(frequency / 100, 8) - 2;
+    return max(newNote, 0);
+  }
 }
 
 void receiveEvent(int howMany)
