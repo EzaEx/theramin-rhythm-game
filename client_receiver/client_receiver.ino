@@ -38,14 +38,6 @@ void loop()
 {
   lcd.setCursor(0, 0);
   lcd.print(currentNote);
-  // print score
-  lcd.setCursor(0, 10);
-  if (score < 100000) lcd.print(" ");
-  if (score < 10000) lcd.print(" ");
-  if (score < 1000) lcd.print(" ");
-  if (score < 100) lcd.print(" ");
-  if (score < 10) lcd.print(" ");
-  lcd.print(score);
   // print ultrasensor reading
   lcd.setCursor(12, 0);
   int height = ultrasonic.MeasureInCentimeters();
@@ -60,16 +52,18 @@ void loop()
     unsigned long timePressed = millis();
     if (currentNote == 0)
     {
-      score -= 300;
+      score -= 15;
       score = max(score, 0);
+      displayScore();
     }
     else
     {
       // calculate points in regards to the ultrasensor and how fast the player was
       unsigned long playerSpeed = timePressed - timeReceived;
-      int points = 1000 - min(abs(currentNote - height/5) * 200 - playerSpeed, 999);
+      int points = 50 - min(abs(currentNote - height/5) * 10 - (playerSpeed / 20), 49);
       currentNote = 0;
       score += points;
+      displayScore();
       Wire.beginTransmission(4); //transmit down wire 4
       Wire.write(deviceAddress);        // send ID byte
       Wire.write(score >> 8);
@@ -100,6 +94,11 @@ void receiveEvent(int howMany)
   {
     currentNote = Wire.read();
   }
+  else if (b == 255)
+  {
+    score = 0;
+    displayScore();
+  }
   else
   {
     while(Wire.available())
@@ -107,4 +106,11 @@ void receiveEvent(int howMany)
       byte i = Wire.read();
     }
   }
+}
+
+void displayScore(){
+  lcd.setCursor(0, 1);
+  lcd.print("                ");
+  lcd.setCursor(4, 1);
+  lcd.print(score);
 }
