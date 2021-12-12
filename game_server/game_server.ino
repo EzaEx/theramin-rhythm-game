@@ -302,7 +302,7 @@ byte frequencyToNote(int frequency)
   // if song is attack or stranger (lower songs)
   if (selectedSong == 2 or selectedSong == 5)
   {
-    int newNote = min(frequency / 30 , 8) - 2;
+    int newNote = min(frequency / 30 , 10) - 2;
     return max(newNote, 0);
   }
   else //(higher songs)
