@@ -1,8 +1,6 @@
 # Theramin-Rythm-Game
 The "Theramin Rythm Game" for Bath architecture 2021
 
-Imagine a theramin,<br>
-Now imagine a rhythm,<br>
-BOOM<br>
-are you excited?<br>
-because I am.
+Our project review is available here: 
+
+[https://docs.google.com/document/d/12ip-toGE9_SG0go5ckDylSmKVoNrUvuSr4WF1od3UYM/edit?usp=sharing](https://docs.google.com/document/d/12ip-toGE9_SG0go5ckDylSmKVoNrUvuSr4WF1od3UYM/edit?usp=sharing)
